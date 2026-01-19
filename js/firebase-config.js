@@ -21,4 +21,7 @@ const db = firebase.firestore();
 // FAQsコレクション参照
 const faqsCollection = db.collection('faqs');
 
+// 管理者コレクション参照
+const adminsCollection = db.collection('admins');
+
 console.log('Firebase初期化完了');

@@ -125,6 +125,24 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- 管理者管理セクション（スーパー管理者のみ表示） -->
+      <div id="adminManagementSection" style="display: none; margin-top: 3rem;">
+        <div class="admin-header">
+          <h2 class="admin-title">👑 管理者管理</h2>
+        </div>
+        <div
+          style="background: var(--surface); padding: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <input type="email" id="newAdminEmail" class="form-input" placeholder="新しい管理者のメールアドレス" style="flex: 1;">
+            <button id="addAdminBtn" class="btn btn-primary">管理者を追加</button>
+          </div>
+          <div id="adminListContainer">
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--text-secondary);">現在の管理者</h3>
+            <div id="adminList"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 

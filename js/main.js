@@ -210,7 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="helpful-btn ${hasVoted ? 'voted' : ''}" data-id="${faq.id}" ${hasVoted ? 'disabled' : ''}>
                   👍 役に立った ${faq.helpful_count ? `(${faq.helpful_count})` : ''}
                 </button>
-                <span class="faq-updated">最終更新: ${formatDate(faq.updated_at)}</span>
+                <div class="faq-footer-right">
+                  <a href="#" class="scroll-to-search" title="検索に戻る">🔍 検索</a>
+                  <span class="faq-updated">最終更新: ${formatDate(faq.updated_at)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -256,6 +259,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 const faqId = favoriteBtn.dataset.id;
                 toggleFavorite(faqId, favoriteBtn);
+                return;
+            }
+
+            // 検索に戻るリンク
+            const scrollToSearchLink = e.target.closest('.scroll-to-search');
+            if (scrollToSearchLink) {
+                e.preventDefault();
+                searchInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                searchInput.focus();
                 return;
             }
 
@@ -361,7 +373,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function scrollToFaq(faqId) {
         const faqItem = document.querySelector(`.faq-item[data-id="${faqId}"]`);
         if (faqItem) {
-            faqItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // ヘッダーの高さを取得
+            const header = document.querySelector('.header');
+            const headerHeight = header ? header.offsetHeight : 60;
+
+            // FAQアイテムの位置を計算
+            const elementPosition = faqItem.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20;
+
+            // スクロール
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+
             setTimeout(() => {
                 if (!faqItem.classList.contains('open')) {
                     faqItem.classList.add('open');

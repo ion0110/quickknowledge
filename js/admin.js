@@ -82,12 +82,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // 非管理者メッセージを非表示
         const notAdminNotice = document.getElementById('notAdminNotice');
         if (notAdminNotice) notAdminNotice.style.display = 'none';
+
+        // スーパー管理者の場合、管理者管理セクションを表示
+        const adminManagementSection = document.getElementById('adminManagementSection');
+        if (adminManagementSection && AuthService.isSuperAdmin()) {
+            adminManagementSection.style.display = 'block';
+            setupAdminManagement();
+            loadAdminList();
+        }
     }
 
     // 管理者機能を無効化（閲覧のみ）
     function disableAdminFeatures() {
         addNewBtn.style.display = 'none';
         if (initSampleBtn) initSampleBtn.style.display = 'none';
+
+        // 管理者管理セクションを非表示
+        const adminManagementSection = document.getElementById('adminManagementSection');
+        if (adminManagementSection) adminManagementSection.style.display = 'none';
 
         // 非管理者メッセージを表示
         let notAdminNotice = document.getElementById('notAdminNotice');
@@ -102,6 +114,69 @@ document.addEventListener('DOMContentLoaded', () => {
             adminContent.insertBefore(notAdminNotice, adminContent.firstChild);
         }
         notAdminNotice.style.display = 'block';
+    }
+
+    // 管理者管理のセットアップ
+    function setupAdminManagement() {
+        const addAdminBtn = document.getElementById('addAdminBtn');
+        const newAdminEmail = document.getElementById('newAdminEmail');
+
+        if (addAdminBtn && !addAdminBtn.hasListener) {
+            addAdminBtn.hasListener = true;
+            addAdminBtn.addEventListener('click', async () => {
+                const email = newAdminEmail.value.trim();
+                if (!email) {
+                    showToast('メールアドレスを入力してください', 'error');
+                    return;
+                }
+
+                try {
+                    await AuthService.addAdmin(email);
+                    showToast(`${email} を管理者に追加しました`, 'success');
+                    newAdminEmail.value = '';
+                    loadAdminList();
+                } catch (error) {
+                    showToast(error.message || 'エラーが発生しました', 'error');
+                }
+            });
+        }
+    }
+
+    // 管理者リストを表示
+    async function loadAdminList() {
+        const adminListEl = document.getElementById('adminList');
+        if (!adminListEl) return;
+
+        try {
+            const admins = await AuthService.getAdminList();
+            adminListEl.innerHTML = admins.map(email => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--background); border-radius: var(--radius-sm); margin-bottom: 0.5rem;">
+          <span>${email}</span>
+          ${email.toLowerCase() === 'mono0110@gmail.com'
+                    ? '<span style="color: var(--warning); font-size: 0.85rem;">👑 スーパー管理者</span>'
+                    : `<button class="btn btn-danger btn-sm remove-admin-btn" data-email="${email}">削除</button>`
+                }
+        </div>
+      `).join('');
+
+            // 削除ボタンのイベント
+            adminListEl.querySelectorAll('.remove-admin-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const email = btn.dataset.email;
+                    if (confirm(`${email} を管理者から削除しますか？`)) {
+                        try {
+                            await AuthService.removeAdmin(email);
+                            showToast(`${email} を管理者から削除しました`, 'info');
+                            loadAdminList();
+                        } catch (error) {
+                            showToast(error.message || 'エラーが発生しました', 'error');
+                        }
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('管理者リスト取得エラー:', error);
+        }
     }
 
     // 未ログインUI表示
