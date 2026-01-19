@@ -210,13 +210,20 @@ const FaqService = {
             startDate.setDate(startDate.getDate() - days);
 
             // 直近のログを取得（最大1000件）
+            // インデックスエラー回避のため、単純に日付順で取得してからフィルタリング
             const snapshot = await searchLogsCollection
-                .where('timestamp', '>=', startDate)
                 .orderBy('timestamp', 'desc')
                 .limit(1000)
                 .get();
 
-            const logs = snapshot.docs.map(doc => doc.data());
+            let logs = snapshot.docs.map(doc => doc.data());
+
+            // 日付でフィルタリング
+            logs = logs.filter(log => {
+                if (!log.timestamp) return false;
+                const logDate = log.timestamp.toDate ? log.timestamp.toDate() : new Date(log.timestamp);
+                return logDate >= startDate;
+            });
 
             // キーワードごとに集計
             const stats = {};
