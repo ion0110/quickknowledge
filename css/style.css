@@ -793,3 +793,89 @@ body {
 .faq-question h3 .new-badge {
   flex-shrink: 0;
 }
+
+/* ========== お気に入り機能 ========== */
+
+/* お気に入りセクション */
+.favorites-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.favorite-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.favorite-item:hover {
+  background: #fffbeb;
+  transform: translateX(4px);
+}
+
+.favorite-star {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.favorite-question {
+  flex: 1;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+/* お気に入りボタン */
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: var(--transition);
+  opacity: 0.5;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
+.favorite-btn.active {
+  opacity: 1;
+}
+
+/* ========== 管理者警告 ========== */
+
+.notice {
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
+}
+
+.notice-warning {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.notice p+p {
+  margin-top: 0.5rem;
+}

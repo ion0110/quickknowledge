@@ -7,13 +7,24 @@ const googleProvider = new firebase.auth.GoogleAuthProvider();
 // 現在のユーザー
 let currentUser = null;
 
+// 管理者として許可されたメールアドレスのリスト
+const ADMIN_EMAILS = [
+    'mono0110@gmail.com'
+];
+
 const AuthService = {
     // Googleでログイン
     async loginWithGoogle() {
         try {
             const result = await auth.signInWithPopup(googleProvider);
             currentUser = result.user;
-            showToast('ログインしました', 'success');
+
+            // 管理者かどうかチェック
+            if (this.isAdmin()) {
+                showToast('管理者としてログインしました', 'success');
+            } else {
+                showToast('ログインしました（閲覧のみ）', 'info');
+            }
             return result.user;
         } catch (error) {
             console.error('ログインエラー:', error);
@@ -55,5 +66,11 @@ const AuthService = {
     // ログイン済みかどうか
     isLoggedIn() {
         return currentUser !== null;
+    },
+
+    // 管理者かどうか
+    isAdmin() {
+        if (!currentUser || !currentUser.email) return false;
+        return ADMIN_EMAILS.includes(currentUser.email.toLowerCase());
     }
 };

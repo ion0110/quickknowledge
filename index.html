@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuickKnowledge - 社内FAQ検索</title>
   <meta name="description" content="社内のよくある質問を簡単に検索できるFAQシステム">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=3">
   <!-- marked.js for Markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -44,6 +44,12 @@
           <button class="category-tag active" data-category="">すべて</button>
         </div>
       </div>
+    </section>
+
+    <!-- お気に入りセクション -->
+    <section id="favoritesSection" class="favorites-section" style="display: none;">
+      <h2 class="section-title">⭐ お気に入り</h2>
+      <div id="favoritesList" class="favorites-list"></div>
     </section>
 
     <!-- 最近の更新セクション -->

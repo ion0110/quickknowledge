@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const recentList = document.getElementById('recentList');
     const popularSection = document.getElementById('popularSection');
     const popularList = document.getElementById('popularList');
+    const favoritesSection = document.getElementById('favoritesSection');
+    const favoritesList = document.getElementById('favoritesList');
 
     let currentCategory = null;
     let isSearching = false;
@@ -16,15 +18,47 @@ document.addEventListener('DOMContentLoaded', () => {
     // ローカルストレージで「役に立った」済みを管理
     const helpfulVotes = JSON.parse(localStorage.getItem('helpfulVotes') || '[]');
 
+    // お気に入りを管理
+    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
     // 初期化
     init();
 
     async function init() {
         await loadCategories();
+        await loadFavorites();
         await loadRecentFaqs();
         await loadPopularFaqs();
         await loadFaqs();
         setupEventListeners();
+    }
+
+    // お気に入りを読み込み
+    async function loadFavorites() {
+        if (favorites.length === 0) {
+            favoritesSection.style.display = 'none';
+            return;
+        }
+
+        try {
+            const allFaqs = await FaqService.getAll();
+            const favoriteFaqs = allFaqs.filter(faq => favorites.includes(faq.id));
+
+            if (favoriteFaqs.length > 0) {
+                favoritesSection.style.display = 'block';
+                favoritesList.innerHTML = favoriteFaqs.map(faq => `
+          <div class="favorite-item" data-id="${faq.id}">
+            <span class="favorite-star" data-id="${faq.id}">⭐</span>
+            <span class="favorite-question">${escapeHtml(faq.question)}</span>
+            ${faq.category ? `<span class="faq-category">${escapeHtml(faq.category)}</span>` : ''}
+          </div>
+        `).join('');
+            } else {
+                favoritesSection.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('お気に入り読み込みエラー:', error);
+        }
     }
 
     // 最近の更新を読み込み
@@ -94,8 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
         faqList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
         isSearching = !!keyword;
 
-        // 検索中は最近・人気セクションを非表示
+        // 検索中は特殊セクションを非表示
         if (isSearching) {
+            favoritesSection.style.display = 'none';
             recentSection.style.display = 'none';
             popularSection.style.display = 'none';
         }
@@ -149,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         faqList.innerHTML = faqs.map(faq => {
             const hasVoted = helpfulVotes.includes(faq.id);
             const isNew = isRecent(faq.updated_at, 7);
+            const isFavorite = favorites.includes(faq.id);
 
             return `
         <div class="faq-item" data-id="${faq.id}">
@@ -158,6 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
               ${escapeHtml(faq.question)}
             </h3>
             <div class="faq-meta">
+              <button class="favorite-btn ${isFavorite ? 'active' : ''}" data-id="${faq.id}" title="お気に入り">
+                ${isFavorite ? '⭐' : '☆'}
+              </button>
               ${faq.view_count ? `<span class="view-badge">👁 ${faq.view_count}</span>` : ''}
               ${faq.category ? `<span class="faq-category">${escapeHtml(faq.category)}</span>` : ''}
               <span class="faq-toggle">▼</span>
@@ -192,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 検索クリア時にセクション再表示
                 if (!keyword && !isSearching) {
+                    loadFavorites();
                     loadRecentFaqs();
                     loadPopularFaqs();
                 }
@@ -208,8 +248,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // アコーディオン & 閲覧数カウント
+        // アコーディオン & 閲覧数カウント & お気に入り
         faqList.addEventListener('click', async (e) => {
+            // お気に入りボタン
+            const favoriteBtn = e.target.closest('.favorite-btn');
+            if (favoriteBtn) {
+                e.stopPropagation();
+                const faqId = favoriteBtn.dataset.id;
+                toggleFavorite(faqId, favoriteBtn);
+                return;
+            }
+
             const question = e.target.closest('.faq-question');
             if (question) {
                 const item = question.closest('.faq-item');
@@ -246,6 +295,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // お気に入りセクションクリック
+        if (favoritesList) {
+            favoritesList.addEventListener('click', (e) => {
+                const star = e.target.closest('.favorite-star');
+                if (star) {
+                    const faqId = star.dataset.id;
+                    toggleFavorite(faqId);
+                    loadFavorites();
+                    loadFaqs(searchInput.value.trim(), currentCategory);
+                    return;
+                }
+
+                const item = e.target.closest('.favorite-item');
+                if (item) {
+                    scrollToFaq(item.dataset.id);
+                }
+            });
+        }
+
         // 最近の更新クリック
         if (recentList) {
             recentList.addEventListener('click', (e) => {
@@ -265,6 +333,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+    }
+
+    // お気に入りをトグル
+    function toggleFavorite(faqId, btn = null) {
+        const index = favorites.indexOf(faqId);
+        if (index > -1) {
+            favorites.splice(index, 1);
+            if (btn) {
+                btn.classList.remove('active');
+                btn.textContent = '☆';
+            }
+            showToast('お気に入りから削除しました', 'info');
+        } else {
+            favorites.push(faqId);
+            if (btn) {
+                btn.classList.add('active');
+                btn.textContent = '⭐';
+            }
+            showToast('お気に入りに追加しました', 'success');
+        }
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+        loadFavorites();
     }
 
     // 指定FAQにスクロールして開く
