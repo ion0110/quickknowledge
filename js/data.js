@@ -186,6 +186,68 @@ const FaqService = {
         }
     },
 
+    // 検索ログ保存
+    async logSearch(keyword) {
+        if (!keyword || keyword.trim() === '') return;
+
+        try {
+            // search_logs コレクションに追加
+            // 管理者機能ではないため、書き込み権限が必要
+            await searchLogsCollection.add({
+                keyword: keyword.trim(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (error) {
+            // ユーザー体験を阻害しないよう、ログ保存エラーはコンソールのみに出力
+            console.warn('検索ログ保存エラー:', error);
+        }
+    },
+
+    // 検索ログ分析（過去30日間のランキング）
+    async getSearchLogStats(days = 30) {
+        try {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+
+            // 直近のログを取得（最大1000件）
+            const snapshot = await searchLogsCollection
+                .where('timestamp', '>=', startDate)
+                .orderBy('timestamp', 'desc')
+                .limit(1000)
+                .get();
+
+            const logs = snapshot.docs.map(doc => doc.data());
+
+            // キーワードごとに集計
+            const stats = {};
+            logs.forEach(log => {
+                const keyword = log.keyword;
+                if (stats[keyword]) {
+                    stats[keyword].count++;
+                    if (log.timestamp > stats[keyword].lastSearch) {
+                        stats[keyword].lastSearch = log.timestamp;
+                    }
+                } else {
+                    stats[keyword] = {
+                        keyword: keyword,
+                        count: 1,
+                        lastSearch: log.timestamp
+                    };
+                }
+            });
+
+            // 配列に変換してソート
+            return Object.values(stats)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10); // 上位10件
+
+        } catch (error) {
+            console.error('検索ログ集計エラー:', error);
+            // インデックス未作成エラーなどの場合は空配列を返す
+            return [];
+        }
+    },
+
     // サンプルデータ投入
     async initSampleData() {
         const sampleData = [

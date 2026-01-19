@@ -140,6 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            // 検索ログ保存（非同期で実行・待たない）
+            if (keyword && isSearching) {
+                // デバウンス処理は呼び出し元(setupEventListeners)で行われているため、
+                // ここでは単純に保存する。ただし一文字入力などで過剰に保存されないよう
+                // setupEventListeners側でdelay(1000ms程度)を入れるか、
+                // ここで保存頻度を制御するのが望ましいが、今回は簡易実装とする。
+                FaqService.logSearch(keyword).catch(err => console.error(err));
+            }
+
             let faqs = await FaqService.getAll();
 
             // カテゴリフィルター（クライアントサイド）

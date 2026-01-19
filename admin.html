@@ -127,6 +127,30 @@
         </tbody>
       </table>
 
+      <!-- 検索分析セクション -->
+      <div id="analyticsSection" style="margin-top: 3rem;">
+        <h2 class="admin-title">📊 検索キーワード分析 (過去30日)</h2>
+        <div
+          style="background: var(--surface); padding: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;">順位</th>
+                <th>キーワード</th>
+                <th>検索回数</th>
+                <th>最終検索日時</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsTableBody">
+              <!-- JSで描画 -->
+            </tbody>
+          </table>
+          <div id="noAnalyticsData" style="text-align:center; padding:2rem; color:var(--text-secondary); display:none;">
+            データがありません
+          </div>
+        </div>
+      </div>
+
       <!-- 管理者管理セクション（スーパー管理者のみ表示） -->
       <div id="adminManagementSection" style="display: none; margin-top: 3rem;">
         <div class="admin-header">
@@ -248,7 +272,7 @@
   <script src="js/firebase-config.js?v=5"></script>
   <script src="js/data.js?v=5"></script>
   <script src="js/auth.js?v=5"></script>
-  <script src="js/admin.js?v=5"></script>
+  <script src="js/admin.js?v=7"></script>
 </body>
 
 </html>

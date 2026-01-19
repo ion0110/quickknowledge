@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const importPreviewBody = document.getElementById('importPreviewBody');
     let importedData = [];
 
+    // 検索分析関連
+    const analyticsTableBody = document.getElementById('analyticsTableBody');
+    const noAnalyticsData = document.getElementById('noAnalyticsData');
+
     // CSVエクスポート関連
     const exportBtn = document.getElementById('exportBtn');
 
@@ -108,7 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setupExportListener();
 
         // 一括削除機能のセットアップ
+        // 一括削除機能のセットアップ
         setupDeleteAllListener();
+
+        // 検索分析データの読み込み
+        loadAnalytics();
 
         // 非管理者メッセージを非表示
         const notAdminNotice = document.getElementById('notAdminNotice');
@@ -762,6 +770,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+
+
+    // 検索分析データの読み込み
+    async function loadAnalytics() {
+        if (!analyticsTableBody) return;
+
+        try {
+            // ローディング表示
+            analyticsTableBody.innerHTML = '<tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr>';
+            if (noAnalyticsData) noAnalyticsData.style.display = 'none';
+
+            // 過去30日分のデータを取得
+            const stats = await FaqService.getSearchLogStats(30);
+
+            analyticsTableBody.innerHTML = '';
+
+            if (stats.length === 0) {
+                if (noAnalyticsData) noAnalyticsData.style.display = 'block';
+            } else {
+                analyticsTableBody.innerHTML = stats.map((stat, index) => {
+                    return `
+                    <tr>
+                        <td style="text-align:center; font-weight:bold;">${index + 1}</td>
+                        <td style="font-weight:bold;">${escapeHtml(stat.keyword)}</td>
+                        <td style="text-align:center;">${stat.count} 回</td>
+                        <td style="color:var(--text-secondary); font-size:0.9em;">
+                            ${formatDate(stat.lastSearch)}
+                        </td>
+                    </tr>
+                `}).join('');
+            }
+        } catch (error) {
+            console.error('分析データ読み込みエラー:', error);
+            analyticsTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">データの読み込みに失敗しました</td></tr>';
+        }
+    }
+
+    // 日付フォーマット（分析用）
+    function formatDate(timestamp) {
+        if (!timestamp) return '-';
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleString('ja-JP', {
+            month: 'numeric',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
 
     function escapeHtml(text) {
         const div = document.createElement('div');

@@ -27,4 +27,7 @@ const faqsCollection = db.collection('faqs');
 // 管理者コレクション参照
 const adminsCollection = db.collection('admins');
 
+// 検索ログコレクション参照
+const searchLogsCollection = db.collection('search_logs');
+
 console.log('Firebase初期化完了');
