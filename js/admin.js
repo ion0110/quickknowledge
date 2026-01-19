@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 for (const item of importedData) {
                     try {
-                        await FaqService.add(item);
+                        await FaqService.create(item);
                         successCount++;
                     } catch (err) {
                         console.error('登録エラー:', err, item);
