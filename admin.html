@@ -1,12 +1,64 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理画面 - QuickKnowledge</title>
   <meta name="description" content="QuickKnowledge FAQ管理画面">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* 認証用追加スタイル */
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .user-name {
+      font-size: 0.9rem;
+    }
+
+    .login-required-notice {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-color);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-required-notice h2 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .login-required-notice p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .admin-content.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
 </head>
+
 <body>
   <!-- ヘッダー -->
   <header class="header">
@@ -15,38 +67,65 @@
         <span class="logo-icon">📚</span>
         <span>QuickKnowledge</span>
       </a>
-      <nav>
+      <div class="auth-section">
         <a href="index.html" class="nav-link">検索画面へ</a>
-      </nav>
+        <!-- ログイン前 -->
+        <button id="loginBtn" class="btn btn-secondary" style="background: rgba(255,255,255,0.15); border: none;">
+          🔐 Googleでログイン
+        </button>
+        <!-- ログイン後（非表示で初期化） -->
+        <div id="userSection" class="user-info" style="display: none;">
+          <img id="userAvatar" class="user-avatar" src="" alt="アバター">
+          <span id="userName" class="user-name"></span>
+          <button id="logoutBtn" class="btn btn-secondary"
+            style="background: rgba(255,255,255,0.15); border: none; padding: 0.5rem 1rem;">
+            ログアウト
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
   <!-- メインコンテンツ -->
   <main class="container" style="max-width: 1100px;">
-    <div class="admin-header">
-      <h1 class="admin-title">FAQ管理</h1>
-      <div style="display: flex; gap: 0.5rem;">
-        <button id="initSampleBtn" class="btn btn-secondary">サンプルデータ投入</button>
-        <button id="addNewBtn" class="btn btn-primary">＋ 新規追加</button>
-      </div>
+    <!-- ログイン要求メッセージ（未ログイン時表示） -->
+    <div id="loginRequiredNotice" class="login-required-notice">
+      <h2>🔐 ログインが必要です</h2>
+      <p>FAQの管理機能を使用するには、Googleアカウントでログインしてください。</p>
+      <button id="loginBtn2" class="btn btn-primary">Googleでログイン</button>
     </div>
 
-    <!-- FAQ一覧テーブル -->
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>質問</th>
-          <th>カテゴリ</th>
-          <th>更新日</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="faqTableBody">
-        <tr>
-          <td colspan="4"><div class="loading"><div class="spinner"></div></div></td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- 管理コンテンツ（ログイン後表示） -->
+    <div id="adminContent" class="admin-content" style="display: none;">
+      <div class="admin-header">
+        <h1 class="admin-title">FAQ管理</h1>
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="initSampleBtn" class="btn btn-secondary">サンプルデータ投入</button>
+          <button id="addNewBtn" class="btn btn-primary">＋ 新規追加</button>
+        </div>
+      </div>
+
+      <!-- FAQ一覧テーブル -->
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>質問</th>
+            <th>カテゴリ</th>
+            <th>更新日</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="faqTableBody">
+          <tr>
+            <td colspan="4">
+              <div class="loading">
+                <div class="spinner"></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </main>
 
   <!-- FAQ編集モーダル -->
@@ -100,10 +179,13 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
   <!-- アプリケーションスクリプト -->
   <script src="js/firebase-config.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/admin.js"></script>
 </body>
+
 </html>

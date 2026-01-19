@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagInputField = document.getElementById('tagInputField');
     const initSampleBtn = document.getElementById('initSampleBtn');
 
+    // 認証関連の要素
+    const loginBtn = document.getElementById('loginBtn');
+    const loginBtn2 = document.getElementById('loginBtn2');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userSection = document.getElementById('userSection');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const loginRequiredNotice = document.getElementById('loginRequiredNotice');
+    const adminContent = document.getElementById('adminContent');
+
     let editingId = null;
     let currentTags = [];
 
@@ -19,8 +29,49 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     async function init() {
-        await loadFaqs();
+        setupAuthListeners();
         setupEventListeners();
+    }
+
+    // 認証状態の監視
+    function setupAuthListeners() {
+        AuthService.onAuthStateChanged((user) => {
+            if (user) {
+                // ログイン済み
+                showLoggedInUI(user);
+                loadFaqs();
+            } else {
+                // 未ログイン
+                showLoggedOutUI();
+            }
+        });
+
+        // ログインボタン
+        loginBtn.addEventListener('click', () => AuthService.loginWithGoogle());
+        loginBtn2.addEventListener('click', () => AuthService.loginWithGoogle());
+
+        // ログアウトボタン
+        logoutBtn.addEventListener('click', () => AuthService.logout());
+    }
+
+    // ログイン済みUI表示
+    function showLoggedInUI(user) {
+        loginBtn.style.display = 'none';
+        userSection.style.display = 'flex';
+        userAvatar.src = user.photoURL || '';
+        userName.textContent = user.displayName || user.email;
+
+        loginRequiredNotice.style.display = 'none';
+        adminContent.style.display = 'block';
+    }
+
+    // 未ログインUI表示
+    function showLoggedOutUI() {
+        loginBtn.style.display = 'block';
+        userSection.style.display = 'none';
+
+        loginRequiredNotice.style.display = 'block';
+        adminContent.style.display = 'none';
     }
 
     // FAQ一覧読み込み

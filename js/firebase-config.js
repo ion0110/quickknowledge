@@ -3,12 +3,13 @@
 // Firebaseコンソール → プロジェクト設定 → マイアプリ → Firebase SDK snippet → 構成
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAGVVB9RtYdRPdXTejgG1DtvbB-ewclIo0",
+  authDomain: "quickknowledge-8fde5.firebaseapp.com",
+  projectId: "quickknowledge-8fde5",
+  storageBucket: "quickknowledge-8fde5.firebasestorage.app",
+  messagingSenderId: "499313198970",
+  appId: "1:499313198970:web:b3f00de83cdaef7f06f8c3",
+  measurementId: "G-SF6TG47YC1"
 };
 
 // Firebase初期化
