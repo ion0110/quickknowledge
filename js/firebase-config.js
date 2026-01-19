@@ -2,6 +2,9 @@
 // ここにあなたのFirebaseプロジェクトの設定を入力してください
 // Firebaseコンソール → プロジェクト設定 → マイアプリ → Firebase SDK snippet → 構成
 
+// ⚠️ 重要: このファイルに含まれるAPIキーは公開されます。
+// セキュリティのため、Google Cloud ConsoleでこのAPIキーに「HTTPリファラー制限」を設定し、
+// 許可されたドメイン（例: your-username.github.io）からのみ使用できるようにしてください。
 const firebaseConfig = {
   apiKey: "AIzaSyAGVVB9RtYdRPdXTejgG1DtvbB-ewclIo0",
   authDomain: "quickknowledge-8fde5.firebaseapp.com",
