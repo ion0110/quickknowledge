@@ -187,16 +187,33 @@ const FaqService = {
     },
 
     // 検索ログ保存
+    // 重複防止用プロパティ
+    lastSearchKeyword: null,
+    lastSearchTime: 0,
+
     async logSearch(keyword) {
         if (!keyword || keyword.trim() === '') return;
+
+        const normalizedKeyword = keyword.trim();
+        const now = Date.now();
+
+        // 重複チェック: 同じキーワードで30秒以内の場合は保存しない
+        if (this.lastSearchKeyword === normalizedKeyword && (now - this.lastSearchTime) < 30000) {
+            return;
+        }
 
         try {
             // search_logs コレクションに追加
             // 管理者機能ではないため、書き込み権限が必要
             await searchLogsCollection.add({
-                keyword: keyword.trim(),
+                keyword: normalizedKeyword,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
+
+            // 成功したらキャッシュ更新
+            this.lastSearchKeyword = normalizedKeyword;
+            this.lastSearchTime = now;
+
         } catch (error) {
             // ユーザー体験を阻害しないよう、ログ保存エラーはコンソールのみに出力
             console.warn('検索ログ保存エラー:', error);
