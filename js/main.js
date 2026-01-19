@@ -128,11 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
         faqList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
         isSearching = !!keyword;
 
-        // 検索中は特殊セクションを非表示
+        // 検索中は新着・人気セクションを非表示（お気に入りは常に表示）
         if (isSearching) {
-            favoritesSection.style.display = 'none';
             recentSection.style.display = 'none';
             popularSection.style.display = 'none';
+        } else {
+            // 検索していない時はお気に入りを読み込み
+            loadFavorites();
         }
 
         try {

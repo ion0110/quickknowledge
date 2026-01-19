@@ -885,15 +885,61 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
+  font-size: 0.85rem;
 }
 
 .scroll-to-search {
   color: var(--primary-color);
   text-decoration: none;
-  font-size: 0.85rem;
   transition: var(--transition);
 }
 
 .scroll-to-search:hover {
   text-decoration: underline;
+}
+
+/* ========== コンパクトセクション ========== */
+
+/* お気に入り・最近・人気セクションをコンパクトに */
+.favorites-section,
+.recent-section,
+.popular-section {
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.favorites-section .section-title,
+.recent-section .section-title,
+.popular-section .section-title {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.favorite-item,
+.recent-item,
+.popular-item {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.favorite-question,
+.recent-question,
+.popular-question {
+  font-size: 0.9rem;
+}
+
+/* 横並びレイアウト（デスクトップ） */
+@media (min-width: 768px) {
+  .compact-sections {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .favorites-section,
+  .recent-section,
+  .popular-section {
+    flex: 1;
+    min-width: 280px;
+  }
 }
