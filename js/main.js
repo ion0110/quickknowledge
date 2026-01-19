@@ -101,16 +101,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            let faqs;
+            let faqs = await FaqService.getAll();
+
+            // カテゴリフィルター（クライアントサイド）
+            if (category) {
+                faqs = faqs.filter(faq => faq.category === category);
+            }
+
+            // キーワード検索（クライアントサイド）
             if (keyword) {
-                faqs = await FaqService.search(keyword);
-                if (category) {
-                    faqs = faqs.filter(faq => faq.category === category);
-                }
-            } else if (category) {
-                faqs = await FaqService.getByCategory(category);
-            } else {
-                faqs = await FaqService.getAll();
+                const lowerKeyword = keyword.toLowerCase();
+                faqs = faqs.filter(faq => {
+                    const questionMatch = faq.question.toLowerCase().includes(lowerKeyword);
+                    const answerMatch = faq.answer.toLowerCase().includes(lowerKeyword);
+                    const tagsMatch = faq.tags && faq.tags.some(tag =>
+                        tag.toLowerCase().includes(lowerKeyword)
+                    );
+                    return questionMatch || answerMatch || tagsMatch;
+                });
             }
 
             renderFaqs(faqs);
