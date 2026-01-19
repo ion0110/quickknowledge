@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // CSVエクスポート関連
     const exportBtn = document.getElementById('exportBtn');
 
+    // 一括削除関連
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+
     // 認証関連の要素
     const loginBtn = document.getElementById('loginBtn');
     const loginBtn2 = document.getElementById('loginBtn2');
@@ -104,6 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // エクスポート機能のセットアップ
         setupExportListener();
 
+        // 一括削除機能のセットアップ
+        setupDeleteAllListener();
+
         // 非管理者メッセージを非表示
         const notAdminNotice = document.getElementById('notAdminNotice');
         if (notAdminNotice) notAdminNotice.style.display = 'none';
@@ -124,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (initSampleBtn) initSampleBtn.style.display = 'none';
         if (importBtn) importBtn.style.display = 'none';
         if (exportBtn) exportBtn.style.display = 'none';
+        if (deleteAllBtn) deleteAllBtn.style.display = 'none';
 
         // 管理者管理セクションを非表示
         const adminManagementSection = document.getElementById('adminManagementSection');
@@ -523,8 +530,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('データがありません。ヘッダー行とデータ行が必要です。');
             }
 
-            // ヘッダー解析（簡易CSVパース）
-            const headers = lines[0].split(',').map(h => h.trim());
+            // ヘッダー解析（小文字に正規化）
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            console.log('CSVヘッダー:', headers);
 
             // データ解析（CSVパース）
             for (let i = 1; i < lines.length; i++) {
@@ -674,6 +682,54 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 exportBtn.disabled = false;
                 exportBtn.textContent = '📥 CSV出力';
+            }
+        });
+    }
+
+    // ========== 一括削除機能 ==========
+    function setupDeleteAllListener() {
+        if (!deleteAllBtn) return;
+
+        deleteAllBtn.addEventListener('click', async () => {
+            // 二重確認
+            const confirmFirst = confirm('⚠️ 本当に全てのFAQを削除しますか？\nこの操作は取り消せません。');
+            if (!confirmFirst) return;
+
+            const confirmSecond = confirm('最終確認：全てのFAQデータが完全に削除されます。続行しますか？');
+            if (!confirmSecond) return;
+
+            deleteAllBtn.disabled = true;
+            deleteAllBtn.textContent = '削除中...';
+
+            try {
+                const faqs = await FaqService.getAll();
+
+                if (faqs.length === 0) {
+                    alert('削除するデータがありません。');
+                    return;
+                }
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const faq of faqs) {
+                    try {
+                        await FaqService.delete(faq.id);
+                        successCount++;
+                    } catch (err) {
+                        console.error('削除エラー:', err, faq.id);
+                        errorCount++;
+                    }
+                }
+
+                alert(`削除完了: 成功 ${successCount}件 / 失敗 ${errorCount}件`);
+                loadFaqs(); // 一覧更新
+            } catch (error) {
+                console.error('一括削除エラー:', error);
+                alert('エラーが発生しました: ' + error.message);
+            } finally {
+                deleteAllBtn.disabled = false;
+                deleteAllBtn.textContent = '🗑️ 一括削除';
             }
         });
     }
