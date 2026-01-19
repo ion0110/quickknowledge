@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addNewBtn.style.display = 'inline-flex';
         if (initSampleBtn) initSampleBtn.style.display = 'inline-flex';
         if (importBtn) importBtn.style.display = 'inline-flex';
+        if (exportBtn) exportBtn.style.display = 'inline-flex';
 
         // インポート機能のセットアップ
         setupImportListeners();
@@ -448,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // モーダル表示
         importBtn.addEventListener('click', () => {
-            importModal.style.display = 'flex';
+            importModal.classList.add('active');
             csvFile.value = '';
             importPreview.style.display = 'none';
             importExecBtn.disabled = true;
@@ -457,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // モーダル閉じる
         const closeImportModal = () => {
-            importModal.style.display = 'none';
+            importModal.classList.remove('active');
         };
         importModalClose.addEventListener('click', closeImportModal);
         importCancelBtn.addEventListener('click', closeImportModal);
