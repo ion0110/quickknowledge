@@ -101,6 +101,8 @@
         <h1 class="admin-title">FAQ管理</h1>
         <div style="display: flex; gap: 0.5rem;">
           <button id="initSampleBtn" class="btn btn-secondary">サンプルデータ投入</button>
+          <button id="exportBtn" class="btn btn-secondary">📥 CSV出力</button>
+          <button id="importBtn" class="btn btn-secondary">📤 一括登録</button>
           <button id="addNewBtn" class="btn btn-primary">＋ 新規追加</button>
         </div>
       </div>
@@ -191,6 +193,50 @@
           <button type="submit" class="btn btn-primary">保存</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- CSVインポートモーダル -->
+  <div id="importModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">CSV一括登録</h2>
+        <button class="modal-close" id="importModalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="csvFile">CSVファイルを選択</label>
+          <input type="file" id="csvFile" accept=".csv" class="form-input">
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+            <p><strong>必須フォーマット:</strong> ヘッダー行を含めてください</p>
+            <code>question,answer,category,tags</code>
+            <p style="margin-top: 5px;">例: <code>領収書の期限は？,月末です,経理,経費</code></p>
+          </div>
+        </div>
+
+        <div id="importPreview"
+          style="display: none; margin-top: 1.5rem; padding: 1rem; background: var(--background); border-radius: var(--radius-sm);">
+          <h4 style="margin-bottom: 0.5rem; font-size: 0.9rem;">プレビュー</h4>
+          <p id="importStats" style="font-size: 0.9rem; margin-bottom: 0.5rem;"></p>
+          <div id="importError" style="color: #ef4444; font-size: 0.9rem; margin-bottom: 0.5rem; display: none;"></div>
+          <div style="max-height: 150px; overflow-y: auto; font-size: 0.8rem; border: 1px solid var(--border-color);">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: var(--surface); text-align: left;">
+                  <th style="padding: 4px;">質問</th>
+                  <th style="padding: 4px;">回答</th>
+                  <th style="padding: 4px;">カテゴリ</th>
+                </tr>
+              </thead>
+              <tbody id="importPreviewBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="importCancelBtn" class="btn btn-secondary">キャンセル</button>
+        <button type="button" id="importExecBtn" class="btn btn-primary" disabled>登録実行</button>
+      </div>
     </div>
   </div>
 

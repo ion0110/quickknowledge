@@ -12,6 +12,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagInputField = document.getElementById('tagInputField');
     const initSampleBtn = document.getElementById('initSampleBtn');
 
+    // 一括登録関連
+    const importBtn = document.getElementById('importBtn');
+    const importModal = document.getElementById('importModal');
+    const importModalClose = document.getElementById('importModalClose');
+    const importCancelBtn = document.getElementById('importCancelBtn');
+    const importExecBtn = document.getElementById('importExecBtn');
+    const csvFile = document.getElementById('csvFile');
+    const importPreview = document.getElementById('importPreview');
+    const importStats = document.getElementById('importStats');
+    const importError = document.getElementById('importError');
+    const importPreviewBody = document.getElementById('importPreviewBody');
+    let importedData = [];
+
+    // CSVエクスポート関連
+    const exportBtn = document.getElementById('exportBtn');
+
     // 認証関連の要素
     const loginBtn = document.getElementById('loginBtn');
     const loginBtn2 = document.getElementById('loginBtn2');
@@ -77,7 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 管理者機能を有効化
     function enableAdminFeatures() {
         addNewBtn.style.display = 'inline-flex';
+        addNewBtn.style.display = 'inline-flex';
         if (initSampleBtn) initSampleBtn.style.display = 'inline-flex';
+        if (importBtn) importBtn.style.display = 'inline-flex';
+
+        // インポート機能のセットアップ
+        setupImportListeners();
+
+        // エクスポート機能のセットアップ
+        setupExportListener();
 
         // 非管理者メッセージを非表示
         const notAdminNotice = document.getElementById('notAdminNotice');
@@ -95,7 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 管理者機能を無効化（閲覧のみ）
     function disableAdminFeatures() {
         addNewBtn.style.display = 'none';
+        addNewBtn.style.display = 'none';
         if (initSampleBtn) initSampleBtn.style.display = 'none';
+        if (importBtn) importBtn.style.display = 'none';
+        if (exportBtn) exportBtn.style.display = 'none';
 
         // 管理者管理セクションを非表示
         const adminManagementSection = document.getElementById('adminManagementSection');
@@ -415,7 +442,242 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // HTMLエスケープ
+    // ========== 一括登録機能 ==========
+    function setupImportListeners() {
+        if (!importBtn) return;
+
+        // モーダル表示
+        importBtn.addEventListener('click', () => {
+            importModal.style.display = 'flex';
+            csvFile.value = '';
+            importPreview.style.display = 'none';
+            importExecBtn.disabled = true;
+            importedData = [];
+        });
+
+        // モーダル閉じる
+        const closeImportModal = () => {
+            importModal.style.display = 'none';
+        };
+        importModalClose.addEventListener('click', closeImportModal);
+        importCancelBtn.addEventListener('click', closeImportModal);
+
+        // CSV読み込み
+        csvFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                parseCSV(event.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        // 登録実行
+        importExecBtn.addEventListener('click', async () => {
+            if (importedData.length === 0) return;
+
+            if (!confirm(`${importedData.length}件のデータを登録します。よろしいですか？`)) return;
+
+            importExecBtn.disabled = true;
+            importExecBtn.textContent = '登録中...';
+
+            try {
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const item of importedData) {
+                    try {
+                        await FaqService.add(item);
+                        successCount++;
+                    } catch (err) {
+                        console.error('登録エラー:', err, item);
+                        errorCount++;
+                    }
+                }
+
+                alert(`登録完了: 成功 ${successCount}件 / 失敗 ${errorCount}件`);
+                closeImportModal();
+                loadFaqs(); // 一覧更新
+            } catch (error) {
+                console.error('一括登録エラー:', error);
+                alert('エラーが発生しました: ' + error.message);
+            } finally {
+                importExecBtn.disabled = false;
+                importExecBtn.textContent = '登録実行';
+            }
+        });
+    }
+
+    function parseCSV(csvText) {
+        importError.style.display = 'none';
+        importPreviewBody.innerHTML = '';
+        importedData = [];
+
+        try {
+            // 改行コード正規化と分割
+            const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) {
+                throw new Error('データがありません。ヘッダー行とデータ行が必要です。');
+            }
+
+            // ヘッダー解析（簡易CSVパース）
+            const headers = lines[0].split(',').map(h => h.trim());
+
+            // データ解析（CSVパース）
+            for (let i = 1; i < lines.length; i++) {
+                const row = parseCSVLine(lines[i]);
+
+                // ヘッダー数と一致しなくても、最低限 question, answer があればOKとする柔軟性を持たせる
+                // ここでは簡易的にオブジェクト化
+                const item = { tags: [] };
+
+                // ヘッダーに基づいてマッピング
+                headers.forEach((header, index) => {
+                    let value = row[index] || '';
+                    if (header === 'tags') {
+                        if (value) {
+                            item.tags = value.split(/[,\s]+/).map(t => t.trim()).filter(t => t !== '');
+                        }
+                    } else if (header) {
+                        item[header] = value;
+                    }
+                });
+
+                if (!item.question || !item.answer) {
+                    console.warn(`必須項目不足の行をスキップ: 行 ${i + 1}`);
+                    continue;
+                }
+
+                importedData.push(item);
+            }
+
+            if (importedData.length === 0) {
+                throw new Error('有効なデータが見つかりませんでした。ヘッダー（question, answer）を確認してください。');
+            }
+
+            // プレビュー表示
+            importStats.textContent = `読み込み成功: ${importedData.length}件`;
+            importPreview.style.display = 'block';
+
+            // 最大5件表示
+            importedData.slice(0, 5).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--border-color)';
+                tr.innerHTML = `
+                    <td style="padding:4px; font-size:0.8rem;">${escapeHtml(item.question)}</td>
+                    <td style="padding:4px; font-size:0.8rem;">${escapeHtml(item.answer.substring(0, 20))}...</td>
+                    <td style="padding:4px; font-size:0.8rem;">${escapeHtml(item.category || '-')}</td>
+                `;
+                importPreviewBody.appendChild(tr);
+            });
+
+            importExecBtn.disabled = false;
+
+        } catch (err) {
+            importError.textContent = err.message;
+            importError.style.display = 'block';
+            importPreview.style.display = 'block';
+            importExecBtn.disabled = true;
+        }
+    }
+
+    // 引用符対応のCSV行パース
+    function parseCSVLine(text) {
+        const result = [];
+        let start = 0;
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === '"') {
+                inQuotes = !inQuotes;
+            } else if (text[i] === ',' && !inQuotes) {
+                let field = text.substring(start, i).trim();
+                if (field.startsWith('"') && field.endsWith('"')) {
+                    field = field.substring(1, field.length - 1).replace(/""/g, '"');
+                }
+                result.push(field);
+                start = i + 1;
+            }
+        }
+
+        let field = text.substring(start).trim();
+        if (field.startsWith('"') && field.endsWith('"')) {
+            field = field.substring(1, field.length - 1).replace(/""/g, '"');
+        }
+        result.push(field);
+
+        return result;
+    }
+
+    // ========== CSVエクスポート機能 ==========
+    function setupExportListener() {
+        if (!exportBtn) return;
+
+        exportBtn.addEventListener('click', async () => {
+            exportBtn.disabled = true;
+            exportBtn.textContent = 'エクスポート中...';
+
+            try {
+                const faqs = await FaqService.getAll();
+
+                if (faqs.length === 0) {
+                    alert('エクスポートするデータがありません。');
+                    return;
+                }
+
+                // CSVヘッダー
+                const headers = ['question', 'answer', 'category', 'tags'];
+
+                // CSVデータ生成
+                let csv = headers.join(',') + '\n';
+
+                faqs.forEach(faq => {
+                    const row = headers.map(header => {
+                        let value = faq[header] || '';
+
+                        // tagsは配列の場合があるので文字列化
+                        if (header === 'tags' && Array.isArray(value)) {
+                            value = value.join(' ');
+                        }
+
+                        // カンマや改行、ダブルクォートを含む場合は引用符で囲む
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('\n') || value.includes('"'))) {
+                            value = '"' + value.replace(/"/g, '""') + '"';
+                        }
+
+                        return value;
+                    });
+                    csv += row.join(',') + '\n';
+                });
+
+                // BOMを追加してExcelで文字化けしないように
+                const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+                const blob = new Blob([bom, csv], { type: 'text/csv;charset=utf-8' });
+
+                // ダウンロードリンク発火
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `faq_export_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast(`${faqs.length}件のFAQをエクスポートしました`, 'success');
+            } catch (error) {
+                console.error('エクスポートエラー:', error);
+                alert('エクスポートに失敗しました: ' + error.message);
+            } finally {
+                exportBtn.disabled = false;
+                exportBtn.textContent = '📥 CSV出力';
+            }
+        });
+    }
+
+
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
