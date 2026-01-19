@@ -15,6 +15,35 @@ const FaqService = {
         }
     },
 
+    // 人気順で取得（閲覧数順）
+    async getPopular(limit = 5) {
+        try {
+            const snapshot = await faqsCollection.orderBy('view_count', 'desc').limit(limit).get();
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error('人気FAQ取得エラー:', error);
+            // view_countがない場合は通常の取得にフォールバック
+            return this.getAll().then(faqs => faqs.slice(0, limit));
+        }
+    },
+
+    // 最近更新されたFAQ取得
+    async getRecent(limit = 5) {
+        try {
+            const snapshot = await faqsCollection.orderBy('updated_at', 'desc').limit(limit).get();
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error('最近のFAQ取得エラー:', error);
+            throw error;
+        }
+    },
+
     // ID指定で取得
     async getById(id) {
         try {
@@ -47,17 +76,12 @@ const FaqService = {
         }
     },
 
-    // カテゴリでフィルター
+    // カテゴリでフィルター（クライアントサイド）
     async getByCategory(category) {
         try {
-            const snapshot = await faqsCollection
-                .where('category', '==', category)
-                .orderBy('updated_at', 'desc')
-                .get();
-            return snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            // インデックスなしでも動作するようクライアントサイドでフィルター
+            const allFaqs = await this.getAll();
+            return allFaqs.filter(faq => faq.category === category);
         } catch (error) {
             console.error('カテゴリ取得エラー:', error);
             throw error;
@@ -84,6 +108,8 @@ const FaqService = {
                 answer: data.answer,
                 category: data.category || '',
                 tags: data.tags || [],
+                view_count: 0,
+                helpful_count: 0,
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
             });
             return docRef.id;
@@ -118,6 +144,45 @@ const FaqService = {
         } catch (error) {
             console.error('FAQ削除エラー:', error);
             throw error;
+        }
+    },
+
+    // 閲覧数をインクリメント
+    async incrementViewCount(id) {
+        try {
+            await faqsCollection.doc(id).update({
+                view_count: firebase.firestore.FieldValue.increment(1)
+            });
+        } catch (error) {
+            // view_countフィールドがない場合は初期化
+            try {
+                await faqsCollection.doc(id).update({
+                    view_count: 1
+                });
+            } catch (e) {
+                console.error('閲覧数更新エラー:', e);
+            }
+        }
+    },
+
+    // 「役に立った」をインクリメント
+    async incrementHelpfulCount(id) {
+        try {
+            await faqsCollection.doc(id).update({
+                helpful_count: firebase.firestore.FieldValue.increment(1)
+            });
+            return true;
+        } catch (error) {
+            // helpful_countフィールドがない場合は初期化
+            try {
+                await faqsCollection.doc(id).update({
+                    helpful_count: 1
+                });
+                return true;
+            } catch (e) {
+                console.error('役に立った更新エラー:', e);
+                return false;
+            }
         }
     },
 
@@ -172,6 +237,16 @@ function formatDate(timestamp) {
         month: 'long',
         day: 'numeric'
     });
+}
+
+// 相対時間表示（新着判定用）
+function isRecent(timestamp, daysAgo = 7) {
+    if (!timestamp) return false;
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const now = new Date();
+    const diffTime = now - date;
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    return diffDays <= daysAgo;
 }
 
 // トースト通知

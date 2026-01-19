@@ -5,16 +5,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryTags = document.getElementById('categoryTags');
     const faqList = document.getElementById('faqList');
     const faqSection = document.getElementById('faqSection');
+    const recentSection = document.getElementById('recentSection');
+    const recentList = document.getElementById('recentList');
+    const popularSection = document.getElementById('popularSection');
+    const popularList = document.getElementById('popularList');
 
     let currentCategory = null;
+    let isSearching = false;
+
+    // ローカルストレージで「役に立った」済みを管理
+    const helpfulVotes = JSON.parse(localStorage.getItem('helpfulVotes') || '[]');
 
     // 初期化
     init();
 
     async function init() {
         await loadCategories();
+        await loadRecentFaqs();
+        await loadPopularFaqs();
         await loadFaqs();
         setupEventListeners();
+    }
+
+    // 最近の更新を読み込み
+    async function loadRecentFaqs() {
+        try {
+            const faqs = await FaqService.getRecent(3);
+            const recentFaqs = faqs.filter(faq => isRecent(faq.updated_at, 7));
+
+            if (recentFaqs.length > 0) {
+                recentSection.style.display = 'block';
+                recentList.innerHTML = recentFaqs.map(faq => `
+          <div class="recent-item" data-id="${faq.id}">
+            <span class="new-badge">NEW</span>
+            <span class="recent-question">${escapeHtml(faq.question)}</span>
+            ${faq.category ? `<span class="faq-category">${escapeHtml(faq.category)}</span>` : ''}
+          </div>
+        `).join('');
+            }
+        } catch (error) {
+            console.error('最近の更新読み込みエラー:', error);
+        }
+    }
+
+    // 人気のFAQを読み込み
+    async function loadPopularFaqs() {
+        try {
+            const faqs = await FaqService.getPopular(3);
+            const popularFaqs = faqs.filter(faq => (faq.view_count || 0) > 0);
+
+            if (popularFaqs.length > 0) {
+                popularSection.style.display = 'block';
+                popularList.innerHTML = popularFaqs.map(faq => `
+          <div class="popular-item" data-id="${faq.id}">
+            <span class="view-count">👁 ${faq.view_count || 0}</span>
+            <span class="popular-question">${escapeHtml(faq.question)}</span>
+            ${faq.category ? `<span class="faq-category">${escapeHtml(faq.category)}</span>` : ''}
+          </div>
+        `).join('');
+            }
+        } catch (error) {
+            console.error('人気FAQ読み込みエラー:', error);
+        }
     }
 
     // カテゴリ一覧読み込み
@@ -40,6 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // FAQ一覧読み込み
     async function loadFaqs(keyword = '', category = null) {
         faqList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        isSearching = !!keyword;
+
+        // 検索中は最近・人気セクションを非表示
+        if (isSearching) {
+            recentSection.style.display = 'none';
+            popularSection.style.display = 'none';
+        }
 
         try {
             let faqs;
@@ -79,23 +138,38 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        faqList.innerHTML = faqs.map(faq => `
-      <div class="faq-item" data-id="${faq.id}">
-        <div class="faq-question">
-          <h3>${escapeHtml(faq.question)}</h3>
-          <div class="faq-meta">
-            ${faq.category ? `<span class="faq-category">${escapeHtml(faq.category)}</span>` : ''}
-            <span class="faq-toggle">▼</span>
+        faqList.innerHTML = faqs.map(faq => {
+            const hasVoted = helpfulVotes.includes(faq.id);
+            const isNew = isRecent(faq.updated_at, 7);
+
+            return `
+        <div class="faq-item" data-id="${faq.id}">
+          <div class="faq-question">
+            <h3>
+              ${isNew ? '<span class="new-badge">NEW</span>' : ''}
+              ${escapeHtml(faq.question)}
+            </h3>
+            <div class="faq-meta">
+              ${faq.view_count ? `<span class="view-badge">👁 ${faq.view_count}</span>` : ''}
+              ${faq.category ? `<span class="faq-category">${escapeHtml(faq.category)}</span>` : ''}
+              <span class="faq-toggle">▼</span>
+            </div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-content">
+              ${renderMarkdown(faq.answer)}
+              
+              <div class="faq-footer">
+                <button class="helpful-btn ${hasVoted ? 'voted' : ''}" data-id="${faq.id}" ${hasVoted ? 'disabled' : ''}>
+                  👍 役に立った ${faq.helpful_count ? `(${faq.helpful_count})` : ''}
+                </button>
+                <span class="faq-updated">最終更新: ${formatDate(faq.updated_at)}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="faq-answer">
-          <div class="faq-answer-content">
-            ${renderMarkdown(faq.answer)}
-            <div class="faq-updated">最終更新: ${formatDate(faq.updated_at)}</div>
-          </div>
-        </div>
-      </div>
-    `).join('');
+      `;
+        }).join('');
     }
 
     // イベントリスナー設定
@@ -105,7 +179,14 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                loadFaqs(e.target.value.trim(), currentCategory);
+                const keyword = e.target.value.trim();
+                loadFaqs(keyword, currentCategory);
+
+                // 検索クリア時にセクション再表示
+                if (!keyword && !isSearching) {
+                    loadRecentFaqs();
+                    loadPopularFaqs();
+                }
             }, 300);
         });
 
@@ -119,14 +200,77 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // アコーディオン
-        faqList.addEventListener('click', (e) => {
+        // アコーディオン & 閲覧数カウント
+        faqList.addEventListener('click', async (e) => {
             const question = e.target.closest('.faq-question');
             if (question) {
                 const item = question.closest('.faq-item');
+                const wasOpen = item.classList.contains('open');
                 item.classList.toggle('open');
+
+                // 開いた時に閲覧数をインクリメント
+                if (!wasOpen) {
+                    const faqId = item.dataset.id;
+                    FaqService.incrementViewCount(faqId);
+                }
+            }
+
+            // 役に立ったボタン
+            const helpfulBtn = e.target.closest('.helpful-btn');
+            if (helpfulBtn && !helpfulBtn.disabled) {
+                const faqId = helpfulBtn.dataset.id;
+                const success = await FaqService.incrementHelpfulCount(faqId);
+
+                if (success) {
+                    helpfulVotes.push(faqId);
+                    localStorage.setItem('helpfulVotes', JSON.stringify(helpfulVotes));
+                    helpfulBtn.classList.add('voted');
+                    helpfulBtn.disabled = true;
+
+                    // カウント表示を更新
+                    const currentText = helpfulBtn.textContent;
+                    const match = currentText.match(/\((\d+)\)/);
+                    const newCount = match ? parseInt(match[1]) + 1 : 1;
+                    helpfulBtn.textContent = `👍 役に立った (${newCount})`;
+
+                    showToast('ご評価ありがとうございます！', 'success');
+                }
             }
         });
+
+        // 最近の更新クリック
+        if (recentList) {
+            recentList.addEventListener('click', (e) => {
+                const item = e.target.closest('.recent-item');
+                if (item) {
+                    scrollToFaq(item.dataset.id);
+                }
+            });
+        }
+
+        // 人気FAQクリック
+        if (popularList) {
+            popularList.addEventListener('click', (e) => {
+                const item = e.target.closest('.popular-item');
+                if (item) {
+                    scrollToFaq(item.dataset.id);
+                }
+            });
+        }
+    }
+
+    // 指定FAQにスクロールして開く
+    function scrollToFaq(faqId) {
+        const faqItem = document.querySelector(`.faq-item[data-id="${faqId}"]`);
+        if (faqItem) {
+            faqItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                if (!faqItem.classList.contains('open')) {
+                    faqItem.classList.add('open');
+                    FaqService.incrementViewCount(faqId);
+                }
+            }, 500);
+        }
     }
 
     // マークダウン変換

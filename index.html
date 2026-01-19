@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
   <!-- marked.js for Markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
   <!-- ヘッダー -->
   <header class="header">
@@ -29,16 +31,10 @@
     <section class="search-section">
       <h1 class="search-title">何かお探しですか？</h1>
       <p class="search-subtitle">キーワードを入力して社内FAQを検索</p>
-      
+
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input 
-          type="text" 
-          id="searchInput" 
-          class="search-input" 
-          placeholder="例：領収書、WiFi、休暇申請..."
-          autocomplete="off"
-        >
+        <input type="text" id="searchInput" class="search-input" placeholder="例：領収書、WiFi、休暇申請..." autocomplete="off">
       </div>
 
       <!-- カテゴリフィルター -->
@@ -50,10 +46,24 @@
       </div>
     </section>
 
+    <!-- 最近の更新セクション -->
+    <section id="recentSection" class="recent-section" style="display: none;">
+      <h2 class="section-title">🆕 最近の更新</h2>
+      <div id="recentList" class="recent-list"></div>
+    </section>
+
+    <!-- 人気のFAQセクション -->
+    <section id="popularSection" class="popular-section" style="display: none;">
+      <h2 class="section-title">🔥 よく見られているFAQ</h2>
+      <div id="popularList" class="popular-list"></div>
+    </section>
+
     <!-- FAQ一覧 -->
     <section id="faqSection" class="faq-section">
       <div id="faqList" class="faq-list">
-        <div class="loading"><div class="spinner"></div></div>
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -61,10 +71,11 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  
+
   <!-- アプリケーションスクリプト -->
   <script src="js/firebase-config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/main.js"></script>
 </body>
+
 </html>
