@@ -883,7 +883,7 @@ body {
 /* 検索へ戻るリンク */
 .faq-footer-right {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 1rem;
   font-size: 0.85rem;
 }

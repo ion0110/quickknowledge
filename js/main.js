@@ -372,8 +372,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 指定FAQにスクロールして開く
-    function scrollToFaq(faqId) {
-        const faqItem = document.querySelector(`.faq-item[data-id="${faqId}"]`);
+    async function scrollToFaq(faqId) {
+        let faqItem = document.querySelector(`.faq-item[data-id="${faqId}"]`);
+
+        // 現在のリストにない場合（カテゴリ絞り込み中など）、フィルタを解除して再表示
+        if (!faqItem) {
+            // カテゴリ選択を「すべて」に戻す
+            const allBtn = document.querySelector('.category-tag[data-category=""]');
+            if (allBtn) {
+                document.querySelectorAll('.category-tag').forEach(tag => tag.classList.remove('active'));
+                allBtn.classList.add('active');
+            }
+            currentCategory = null;
+
+            // カテゴリ解除して再ロード
+            await loadFaqs(searchInput.value.trim(), null);
+            faqItem = document.querySelector(`.faq-item[data-id="${faqId}"]`);
+
+            // それでもなければ検索ワードもクリア
+            if (!faqItem && searchInput.value.trim()) {
+                searchInput.value = '';
+                await loadFaqs('', null);
+                faqItem = document.querySelector(`.faq-item[data-id="${faqId}"]`);
+            }
+        }
+
         if (faqItem) {
             // ヘッダーの高さを取得
             const header = document.querySelector('.header');
@@ -395,6 +418,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     FaqService.incrementViewCount(faqId);
                 }
             }, 500);
+        } else {
+            showToast('該当するFAQが見つかりませんでした', 'error');
         }
     }
 
