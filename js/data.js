@@ -199,8 +199,13 @@ const FaqService = {
 
         // 重複チェック: 同じキーワードで30秒以内の場合は保存しない
         if (this.lastSearchKeyword === normalizedKeyword && (now - this.lastSearchTime) < 30000) {
+            console.log('重複検索のためログ保存をスキップ:', normalizedKeyword);
             return;
         }
+
+        // 先にフラグを更新して、連続呼び出し（Race Condition）を防ぐ
+        this.lastSearchKeyword = normalizedKeyword;
+        this.lastSearchTime = now;
 
         try {
             // search_logs コレクションに追加
@@ -209,10 +214,6 @@ const FaqService = {
                 keyword: normalizedKeyword,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-
-            // 成功したらキャッシュ更新
-            this.lastSearchKeyword = normalizedKeyword;
-            this.lastSearchTime = now;
 
         } catch (error) {
             // ユーザー体験を阻害しないよう、ログ保存エラーはコンソールのみに出力
