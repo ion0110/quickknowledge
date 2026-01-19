@@ -888,6 +888,10 @@ body {
   font-size: 0.85rem;
 }
 
+.faq-footer-right .faq-updated {
+  margin-top: 0;
+}
+
 .scroll-to-search {
   color: var(--primary-color);
   text-decoration: none;
