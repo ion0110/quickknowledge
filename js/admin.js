@@ -524,22 +524,24 @@ document.addEventListener('DOMContentLoaded', () => {
         importedData = [];
 
         try {
-            // 改行コード正規化と分割
-            const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) {
+            // 改行コード正規化
+            const normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+            // 全体をパースして行とフィールドを取得
+            const rows = parseCSVMultiline(normalized);
+            console.log('パース結果:', rows.length, '行');
+
+            if (rows.length < 2) {
                 throw new Error('データがありません。ヘッダー行とデータ行が必要です。');
             }
 
             // ヘッダー解析（小文字に正規化）
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const headers = rows[0].map(h => h.trim().toLowerCase());
             console.log('CSVヘッダー:', headers);
 
-            // データ解析（CSVパース）
-            for (let i = 1; i < lines.length; i++) {
-                const row = parseCSVLine(lines[i]);
-
-                // ヘッダー数と一致しなくても、最低限 question, answer があればOKとする柔軟性を持たせる
-                // ここでは簡易的にオブジェクト化
+            // データ解析
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
                 const item = { tags: [] };
 
                 // ヘッダーに基づいてマッピング
@@ -547,12 +549,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     let value = row[index] || '';
                     if (header === 'tags') {
                         if (value) {
-                            item.tags = value.split(/[,\s]+/).map(t => t.trim()).filter(t => t !== '');
+                            // タグはスペース区切り
+                            item.tags = value.split(/\s+/).map(t => t.trim()).filter(t => t !== '');
                         }
                     } else if (header) {
                         item[header] = value;
                     }
                 });
+
+                console.log(`行${i + 1}:`, item);
 
                 if (!item.question || !item.answer) {
                     console.warn(`必須項目不足の行をスキップ: 行 ${i + 1}`);
@@ -592,33 +597,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 引用符対応のCSV行パース
-    function parseCSVLine(text) {
-        const result = [];
-        let start = 0;
+    // 複数行対応のCSVパース（引用符内の改行を正しく処理）
+    function parseCSVMultiline(text) {
+        const rows = [];
+        let currentRow = [];
+        let currentField = '';
         let inQuotes = false;
 
         for (let i = 0; i < text.length; i++) {
-            if (text[i] === '"') {
-                inQuotes = !inQuotes;
-            } else if (text[i] === ',' && !inQuotes) {
-                let field = text.substring(start, i).trim();
-                if (field.startsWith('"') && field.endsWith('"')) {
-                    field = field.substring(1, field.length - 1).replace(/""/g, '"');
+            const char = text[i];
+
+            if (inQuotes) {
+                if (char === '"') {
+                    // 次の文字も"ならエスケープされた"
+                    if (text[i + 1] === '"') {
+                        currentField += '"';
+                        i++; // スキップ
+                    } else {
+                        inQuotes = false;
+                    }
+                } else {
+                    currentField += char;
                 }
-                result.push(field);
-                start = i + 1;
+            } else {
+                if (char === '"') {
+                    inQuotes = true;
+                } else if (char === ',') {
+                    currentRow.push(currentField.trim());
+                    currentField = '';
+                } else if (char === '\n') {
+                    currentRow.push(currentField.trim());
+                    if (currentRow.some(f => f !== '')) {
+                        rows.push(currentRow);
+                    }
+                    currentRow = [];
+                    currentField = '';
+                } else {
+                    currentField += char;
+                }
             }
         }
 
-        let field = text.substring(start).trim();
-        if (field.startsWith('"') && field.endsWith('"')) {
-            field = field.substring(1, field.length - 1).replace(/""/g, '"');
+        // 最後のフィールドと行を追加
+        currentRow.push(currentField.trim());
+        if (currentRow.some(f => f !== '')) {
+            rows.push(currentRow);
         }
-        result.push(field);
 
-        return result;
+        return rows;
     }
+
 
     // ========== CSVエクスポート機能 ==========
     function setupExportListener() {
