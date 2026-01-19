@@ -804,7 +804,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('分析データ読み込みエラー:', error);
-            analyticsTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">データの読み込みに失敗しました</td></tr>';
+            analyticsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align:center; color:red;">
+                        読み込みエラー: ${error.message}<br>
+                        <small>Firestoreセキュリティルールを確認してください</small>
+                    </td>
+                </tr>`;
         }
     }
 
