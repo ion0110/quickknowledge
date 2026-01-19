@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const popularList = document.getElementById('popularList');
     const favoritesSection = document.getElementById('favoritesSection');
     const favoritesList = document.getElementById('favoritesList');
+    const voiceSearchBtn = document.getElementById('voiceSearchBtn'); // 音声検索ボタン
 
     let currentCategory = null;
     let isSearching = false;
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadPopularFaqs();
         await loadFaqs();
         setupEventListeners();
+        setupVoiceSearch(); // 音声検索機能
     }
 
     // お気に入りを読み込み
@@ -369,6 +371,73 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         localStorage.setItem('favorites', JSON.stringify(favorites));
         loadFavorites();
+    }
+
+    // ========== 音声検索機能 ==========
+    function setupVoiceSearch() {
+        // ブラウザが音声認識をサポートしているか確認
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            console.log('Voice search not supported in this browser.');
+            return;
+        }
+
+        // マイクボタンを表示
+        if (voiceSearchBtn) voiceSearchBtn.style.display = 'flex';
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP'; // 日本語
+        recognition.interimResults = false; // 確定した結果のみ取得
+        recognition.maxAlternatives = 1;
+
+        let isListening = false;
+
+        voiceSearchBtn.addEventListener('click', () => {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        // 音声認識開始
+        recognition.onstart = () => {
+            isListening = true;
+            voiceSearchBtn.classList.add('listening');
+            searchInput.placeholder = 'お話しください...';
+        };
+
+        // 音声認識終了
+        recognition.onend = () => {
+            isListening = false;
+            voiceSearchBtn.classList.remove('listening');
+            if (searchInput.value === '') {
+                searchInput.placeholder = '例：領収書、WiFi、休暇申請...';
+            }
+        };
+
+        // 結果取得
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+
+            // 検索ボックスに入力して検索実行
+            searchInput.value = transcript;
+
+            // 検索実行
+            loadFaqs(transcript, currentCategory);
+        };
+
+        // エラー処理
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            isListening = false;
+            voiceSearchBtn.classList.remove('listening');
+            searchInput.placeholder = 'エラーが発生しました';
+            setTimeout(() => {
+                searchInput.placeholder = '例：領収書、WiFi、休暇申請...';
+            }, 2000);
+        };
     }
 
     // 指定FAQにスクロールして開く
