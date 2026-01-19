@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 - QuickKnowledge</title>
+  <meta name="description" content="QuickKnowledge FAQ管理画面">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="header-content">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">📚</span>
+        <span>QuickKnowledge</span>
+      </a>
+      <nav>
+        <a href="index.html" class="nav-link">検索画面へ</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="container" style="max-width: 1100px;">
+    <div class="admin-header">
+      <h1 class="admin-title">FAQ管理</h1>
+      <div style="display: flex; gap: 0.5rem;">
+        <button id="initSampleBtn" class="btn btn-secondary">サンプルデータ投入</button>
+        <button id="addNewBtn" class="btn btn-primary">＋ 新規追加</button>
+      </div>
+    </div>
+
+    <!-- FAQ一覧テーブル -->
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>質問</th>
+          <th>カテゴリ</th>
+          <th>更新日</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="faqTableBody">
+        <tr>
+          <td colspan="4"><div class="loading"><div class="spinner"></div></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <!-- FAQ編集モーダル -->
+  <div id="faqModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle" class="modal-title">新規FAQ追加</h2>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="faqForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="question">質問 *</label>
+            <input type="text" id="question" class="form-input" placeholder="例：領収書の提出期限は？" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="answer">回答 *</label>
+            <textarea id="answer" class="form-textarea" placeholder="マークダウン形式で記述できます" required></textarea>
+            <p class="form-hint">マークダウン記法が使えます（**太字**, リスト, リンクなど）</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="category">カテゴリ</label>
+            <select id="category" class="form-select">
+              <option value="">選択してください</option>
+              <option value="経理">経理</option>
+              <option value="IT">IT</option>
+              <option value="総務">総務</option>
+              <option value="人事">人事</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">タグ</label>
+            <div id="tagsInput" class="tags-input">
+              <input type="text" id="tagInputField" class="tag-input-field" placeholder="Enterで追加">
+            </div>
+            <p class="form-hint">キーワードを入力してEnterで追加</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="cancelBtn" class="btn btn-secondary">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- アプリケーションスクリプト -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

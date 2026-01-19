@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickKnowledge - 社内FAQ検索</title>
+  <meta name="description" content="社内のよくある質問を簡単に検索できるFAQシステム">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="header-content">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">📚</span>
+        <span>QuickKnowledge</span>
+      </a>
+      <nav>
+        <a href="admin.html" class="nav-link">管理画面</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="container">
+    <!-- 検索セクション -->
+    <section class="search-section">
+      <h1 class="search-title">何かお探しですか？</h1>
+      <p class="search-subtitle">キーワードを入力して社内FAQを検索</p>
+      
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="例：領収書、WiFi、休暇申請..."
+          autocomplete="off"
+        >
+      </div>
+
+      <!-- カテゴリフィルター -->
+      <div class="category-section">
+        <p class="category-title">カテゴリで絞り込み</p>
+        <div id="categoryTags" class="category-tags">
+          <button class="category-tag active" data-category="">すべて</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ一覧 -->
+    <section id="faqSection" class="faq-section">
+      <div id="faqList" class="faq-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- アプリケーションスクリプト -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
