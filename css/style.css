@@ -951,48 +951,127 @@ body {
   text-decoration: underline;
 }
 
-/* ========== コンパクトセクション ========== */
+/* ========== コンパクトセクション（タブUI） ========== */
+.compact-sections {
+  margin-bottom: 2rem;
+}
 
-/* お気に入り・最近・人気セクションをコンパクトに */
+/* タブコントロール */
+.tab-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: -1px;
+  /* 下線と重ねる */
+  position: relative;
+  z-index: 10;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.25rem;
+  background: var(--background);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background: var(--surface);
+  color: var(--primary-color);
+}
+
+.tab-btn.active {
+  background: var(--surface);
+  color: var(--primary-color);
+  font-weight: 600;
+  border-color: var(--border-color);
+  border-bottom-color: var(--surface);
+  /* コンテンツと一体化 */
+}
+
+/* タブコンテンツ */
+.tab-contents {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+/* スマホ等で角丸調整（最初のタブがActiveの場合） */
+.tab-btn:first-child.active {
+  border-bottom-left-radius: 0;
+}
+
+.tab-pane {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 各セクションのスタイル調整（タブ内での表示） */
 .favorites-section,
 .recent-section,
 .popular-section {
-  margin-bottom: 1rem;
-  padding: 1rem;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
 }
 
-.favorites-section .section-title,
-.recent-section .section-title,
-.popular-section .section-title {
-  font-size: 0.95rem;
-  margin-bottom: 0.75rem;
+.favorites-section {
+  background: transparent;
+  /* 背景色リセット */
+}
+
+.section-title {
+  display: none;
+  /* タブにあるので非表示 */
 }
 
 .favorite-item,
 .recent-item,
 .popular-item {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  background: var(--background);
+  border: 1px solid var(--border-color);
 }
 
-.favorite-question,
-.recent-question,
-.popular-question {
-  font-size: 0.9rem;
+.favorite-item:hover,
+.recent-item:hover,
+.popular-item:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-color);
 }
 
-/* 横並びレイアウト（デスクトップ） */
-@media (min-width: 768px) {
-  .compact-sections {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .favorites-section,
-  .recent-section,
-  .popular-section {
+/* レスポンシブ調整 */
+@media (max-width: 480px) {
+  .tab-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
     flex: 1;
-    min-width: 280px;
+    text-align: center;
   }
 }

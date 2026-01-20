@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const popularList = document.getElementById('popularList');
     const favoritesSection = document.getElementById('favoritesSection');
     const favoritesList = document.getElementById('favoritesList');
+    const favoritesTabBtn = document.getElementById('favoritesTabBtn'); // お気に入りタブボタン
+    const tabControls = document.getElementById('tabControls'); // タブコントロール
     const voiceSearchBtn = document.getElementById('voiceSearchBtn'); // 音声検索ボタン
 
     let currentCategory = null;
@@ -37,8 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // お気に入りを読み込み
     async function loadFavorites() {
+        if (!favoritesTabBtn) return;
+
         if (favorites.length === 0) {
-            favoritesSection.style.display = 'none';
+            favoritesTabBtn.style.display = 'none';
+            // もし現在お気に入りタブが開いていたら、最近の更新タブに戻す
+            if (favoritesTabBtn.classList.contains('active')) {
+                document.querySelector('[data-tab="recent"]').click();
+            }
             return;
         }
 
@@ -47,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const favoriteFaqs = allFaqs.filter(faq => favorites.includes(faq.id));
 
             if (favoriteFaqs.length > 0) {
-                favoritesSection.style.display = 'block';
+                favoritesTabBtn.style.display = 'block';
                 favoritesList.innerHTML = favoriteFaqs.map(faq => `
           <div class="favorite-item" data-id="${faq.id}">
             <span class="favorite-star" data-id="${faq.id}">⭐</span>
@@ -56,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `).join('');
             } else {
-                favoritesSection.style.display = 'none';
+                favoritesTabBtn.style.display = 'none';
             }
         } catch (error) {
             console.error('お気に入り読み込みエラー:', error);
@@ -70,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const recentFaqs = faqs.filter(faq => isRecent(faq.updated_at, 7));
 
             if (recentFaqs.length > 0) {
-                recentSection.style.display = 'block';
+                // recentSection.style.display = 'block'; // タブ制御(activeクラス)任せにする
                 recentList.innerHTML = recentFaqs.map(faq => `
           <div class="recent-item" data-id="${faq.id}">
             <span class="new-badge">NEW</span>
@@ -91,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const popularFaqs = faqs.filter(faq => (faq.view_count || 0) > 0);
 
             if (popularFaqs.length > 0) {
-                popularSection.style.display = 'block';
+                // popularSection.style.display = 'block'; // タブ制御(activeクラス)任せにする
                 popularList.innerHTML = popularFaqs.map(faq => `
           <div class="popular-item" data-id="${faq.id}">
             <span class="view-count">👁 ${faq.view_count || 0}</span>
@@ -237,6 +245,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // イベントリスナー設定
     function setupEventListeners() {
+        // タブ切り替え
+        if (tabControls) {
+            tabControls.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-btn')) {
+                    const tabId = e.target.dataset.tab;
+
+                    // タブボタンのアクティブ化
+                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    // タブペインの表示切り替え
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+                    if (tabId === 'recent') {
+                        document.getElementById('recentSection').classList.add('active');
+                    } else if (tabId === 'popular') {
+                        document.getElementById('popularSection').classList.add('active');
+                    } else if (tabId === 'favorites') {
+                        document.getElementById('favoritesSection').classList.add('active');
+                    }
+                }
+            });
+        }
+
         // 検索
         let searchTimeout;
         searchInput.addEventListener('input', (e) => {

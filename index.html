@@ -47,25 +47,32 @@
       </div>
     </section>
 
-    <!-- コンパクトセクション（横並び） -->
+    <!-- コンパクトセクション（タブ切り替え） -->
     <div id="compactSections" class="compact-sections">
-      <!-- お気に入りセクション -->
-      <section id="favoritesSection" class="favorites-section" style="display: none;">
-        <h2 class="section-title">⭐ お気に入り</h2>
-        <div id="favoritesList" class="favorites-list"></div>
-      </section>
+      <!-- タブボタン -->
+      <div class="tab-controls" id="tabControls">
+        <button class="tab-btn active" data-tab="recent">🆕 最近の更新</button>
+        <button class="tab-btn" data-tab="popular">🔥 よく見られている</button>
+        <button class="tab-btn" data-tab="favorites" id="favoritesTabBtn" style="display: none;">⭐ お気に入り</button>
+      </div>
 
-      <!-- 最近の更新セクション -->
-      <section id="recentSection" class="recent-section" style="display: none;">
-        <h2 class="section-title">🆕 最近の更新</h2>
-        <div id="recentList" class="recent-list"></div>
-      </section>
+      <!-- タブコンテンツ -->
+      <div class="tab-contents">
+        <!-- 最近の更新セクション -->
+        <section id="recentSection" class="recent-section tab-pane active">
+          <div id="recentList" class="recent-list"></div>
+        </section>
 
-      <!-- 人気のFAQセクション -->
-      <section id="popularSection" class="popular-section" style="display: none;">
-        <h2 class="section-title">🔥 よく見られているFAQ</h2>
-        <div id="popularList" class="popular-list"></div>
-      </section>
+        <!-- 人気のFAQセクション -->
+        <section id="popularSection" class="popular-section tab-pane">
+          <div id="popularList" class="popular-list"></div>
+        </section>
+
+        <!-- お気に入りセクション -->
+        <section id="favoritesSection" class="favorites-section tab-pane">
+          <div id="favoritesList" class="favorites-list"></div>
+        </section>
+      </div>
     </div>
 
     <!-- FAQ一覧 -->
@@ -83,9 +90,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <!-- アプリケーションスクリプト -->
-  <script src="js/firebase-config.js?v=4"></script>
-  <script src="js/data.js?v=4"></script>
-  <script src="js/main.js?v=6"></script>
+  <script src="js/firebase-config.js?v=15"></script>
+  <script src="js/data.js?v=15"></script>
+  <script src="js/main.js?v=15"></script>
 </body>
 
 </html>
