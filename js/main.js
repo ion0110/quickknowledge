@@ -133,27 +133,33 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     }
 
-    // FAQ一覧読み込み
-    async function loadFaqs(keyword = '', category = null) {
-        faqList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-        isSearching = !!keyword;
+    // FAQデータを読み込み
+    // saveLog: trueの場合のみFirestoreに検索ログを保存する（Enter確定や音声検索時）
+    async function loadFaqs(keyword = '', category = null, saveLog = false) {
+        const faqList = document.getElementById('faqList');
+        const compactSections = document.getElementById('compactSections');
 
-        // 検索中は新着・人気セクションを非表示（お気に入りは常に表示）
-        if (isSearching) {
-            recentSection.style.display = 'none';
-            popularSection.style.display = 'none';
+        // 検索状態の管理
+        const isSearching = !!keyword;
+
+        if (isSearching || category) {
+            // 検索・カテゴリ絞り込み時は、タブエリアを非表示
+            if (compactSections) compactSections.style.display = 'none';
         } else {
-            // 検索していない時はお気に入りを読み込み
-            loadFavorites();
+            // 通常時はタブエリアを表示し、FAQリストは非表示（または空）にする
+            if (compactSections) compactSections.style.display = 'block'; // blockでOK（divなので）
+            faqList.innerHTML = '';
+            // 検索解除時はお気に入りを再読み込みするなどの処理が必要だが、
+            // setupEventListenersのinputイベント内で loadFavorites() 等を呼んでいるのでここでは不要
+            return;
         }
 
+        faqList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
         try {
-            // 検索ログ保存（非同期で実行・待たない）
-            if (keyword && isSearching) {
-                // デバウンス処理は呼び出し元(setupEventListeners)で行われているため、
-                // ここでは単純に保存する。ただし一文字入力などで過剰に保存されないよう
-                // setupEventListeners側でdelay(1000ms程度)を入れるか、
-                // ここで保存頻度を制御するのが望ましいが、今回は簡易実装とする。
+            // 検索ログ保存（Enterキーまたは音声検索による明示的な場合のみ）
+            if (keyword && isSearching && saveLog) {
+                // background処理として実行（awaitしない）
                 FaqService.logSearch(keyword).catch(err => console.error(err));
             }
 
@@ -271,11 +277,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 検索
         let searchTimeout;
+        let isComposing = false; // IME入力中フラグ
+
+        // IME入力開始
+        searchInput.addEventListener('compositionstart', () => {
+            isComposing = true;
+        });
+
+        // IME入力終了（変換確定）
+        searchInput.addEventListener('compositionend', () => {
+            isComposing = false;
+            // 確定時に検索を実行（inputイベントが発火しないブラウザ対策も兼ねて）
+            const event = new Event('input');
+            searchInput.dispatchEvent(event);
+        });
+
         searchInput.addEventListener('input', (e) => {
+            // IME入力中は検索しない
+            if (isComposing || e.isComposing) return;
+
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 const keyword = e.target.value.trim();
-                loadFaqs(keyword, currentCategory);
+                // リアルタイム検索ではログを保存しない (saveLog = false)
+                loadFaqs(keyword, currentCategory, false);
 
                 // 検索クリア時にセクション再表示
                 if (!keyword && !isSearching) {
@@ -283,7 +308,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadRecentFaqs();
                     loadPopularFaqs();
                 }
-            }, 300);
+            }, 500); // 誤入力対策で少し遅延を増やす
+        });
+
+        // Enterキーでログ保存
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !isComposing && !e.isComposing) {
+                const keyword = searchInput.value.trim();
+                if (keyword) {
+                    // ここで明示的にログ保存を行う
+                    loadFaqs(keyword, currentCategory, true);
+                }
+            }
         });
 
         // カテゴリフィルター
@@ -465,8 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // 検索ボックスに入力して検索実行
             searchInput.value = transcript;
 
-            // 検索実行
-            loadFaqs(transcript, currentCategory);
+            // 検索実行（ログ保存する）
+            loadFaqs(transcript, currentCategory, true);
         };
 
         // エラー処理
