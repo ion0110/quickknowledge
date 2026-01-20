@@ -7,8 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const faqSection = document.getElementById('faqSection');
     const recentSection = document.getElementById('recentSection');
     const recentList = document.getElementById('recentList');
-    const popularSection = document.getElementById('popularSection');
-    const popularList = document.getElementById('popularList');
+
     const favoritesSection = document.getElementById('favoritesSection');
     const favoritesList = document.getElementById('favoritesList');
     const favoritesTabBtn = document.getElementById('favoritesTabBtn'); // お気に入りタブボタン
@@ -31,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadCategories();
         await loadFavorites();
         await loadRecentFaqs();
-        await loadPopularFaqs();
         await loadFaqs();
         setupEventListeners();
         setupVoiceSearch(); // 音声検索機能
@@ -92,26 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 人気のFAQを読み込み
-    async function loadPopularFaqs() {
-        try {
-            const faqs = await FaqService.getPopular(3);
-            const popularFaqs = faqs.filter(faq => (faq.view_count || 0) > 0);
 
-            if (popularFaqs.length > 0) {
-                // popularSection.style.display = 'block'; // タブ制御(activeクラス)任せにする
-                popularList.innerHTML = popularFaqs.map(faq => `
-          <div class="popular-item" data-id="${faq.id}">
-            <span class="view-count">👁 ${faq.view_count || 0}</span>
-            <span class="popular-question">${escapeHtml(faq.question)}</span>
-            ${faq.category ? `<span class="faq-category">${escapeHtml(faq.category)}</span>` : ''}
-          </div>
-        `).join('');
-            }
-        } catch (error) {
-            console.error('人気FAQ読み込みエラー:', error);
-        }
-    }
 
     // カテゴリ一覧読み込み
     async function loadCategories() {
@@ -266,8 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (tabId === 'recent') {
                         document.getElementById('recentSection').classList.add('active');
-                    } else if (tabId === 'popular') {
-                        document.getElementById('popularSection').classList.add('active');
                     } else if (tabId === 'favorites') {
                         document.getElementById('favoritesSection').classList.add('active');
                     }
@@ -306,7 +283,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!keyword && !isSearching) {
                     loadFavorites();
                     loadRecentFaqs();
-                    loadPopularFaqs();
                 }
             }, 500); // 誤入力対策で少し遅延を増やす
         });
