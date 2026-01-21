@@ -259,18 +259,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // 検索
         let searchTimeout;
         let isComposing = false; // IME入力中フラグ
+        let justCompositionEnded = false; // IME確定直後フラグ（Enterキー重複防止用）
 
         // IME入力開始
         searchInput.addEventListener('compositionstart', () => {
             isComposing = true;
         });
 
-        // IME入力終了（変換確定）
+        // IME入力終了（変換確定）→ここでログ保存付きの検索を実行
         searchInput.addEventListener('compositionend', () => {
             isComposing = false;
-            // 確定時に検索を実行（inputイベントが発火しないブラウザ対策も兼ねて）
-            const event = new Event('input');
-            searchInput.dispatchEvent(event);
+            justCompositionEnded = true;
+
+            const keyword = searchInput.value.trim();
+            if (keyword) {
+                // IME確定時にログ保存付きで検索実行（日本語入力の自然な動作）
+                console.log('[compositionend] IME確定でログ保存:', keyword);
+                loadFaqs(keyword, currentCategory, true);
+            }
+
+            // 短い時間後にフラグをリセット（直後のEnterキーイベントとの重複防止）
+            setTimeout(() => {
+                justCompositionEnded = false;
+            }, 100);
         });
 
         searchInput.addEventListener('input', (e) => {
@@ -291,12 +302,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500); // 誤入力対策で少し遅延を増やす
         });
 
-        // Enterキーでログ保存
+        // Enterキーでログ保存（英数字入力用）
         searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !isComposing && !e.isComposing) {
+            // IME確定直後のEnterは無視（compositionendで処理済み）
+            if (e.key === 'Enter' && !isComposing && !e.isComposing && !justCompositionEnded) {
                 const keyword = searchInput.value.trim();
                 if (keyword) {
-                    // ここで明示的にログ保存を行う
+                    // 英数字入力確定時にログ保存
+                    console.log('[keydown] Enterでログ保存:', keyword);
                     loadFaqs(keyword, currentCategory, true);
                 }
             }
