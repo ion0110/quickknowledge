@@ -156,7 +156,7 @@ body {
 /* 検索ボタン */
 .search-btn {
   position: absolute;
-  right: 3.5rem;
+  right: 1rem;
   top: 50%;
   transform: translateY(-50%);
   background: var(--primary-color);
@@ -171,7 +171,7 @@ body {
 }
 
 .search-btn:hover {
-  background: var(--primary-dark);
+  background: var(--primary-hover);
 }
 
 .voice-search-btn {
