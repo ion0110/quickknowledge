@@ -125,13 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // 検索・カテゴリ絞り込み時は、タブエリアを非表示
             if (compactSections) compactSections.style.display = 'none';
         } else {
-            // 通常時はタブエリアを表示し、FAQリストは非表示（または空）にする
-            if (compactSections) compactSections.style.display = 'block'; // blockでOK（divなので）
-            faqList.innerHTML = '';
-            // 検索解除時はお気に入りを再読み込みするなどの処理が必要だが、
-            // setupEventListenersのinputイベント内で loadFavorites() 等を呼んでいるのでここでは不要
-            return;
+            // 通常時（トップページ）はタブエリアを表示
+            if (compactSections) compactSections.style.display = 'block';
         }
+        // トップページでも全FAQを表示する（returnしない）
 
         faqList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
