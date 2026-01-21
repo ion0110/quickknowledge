@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const favoritesList = document.getElementById('favoritesList');
     const favoritesTabBtn = document.getElementById('favoritesTabBtn'); // お気に入りタブボタン
     const tabControls = document.getElementById('tabControls'); // タブコントロール
+    const searchBtn = document.getElementById('searchBtn'); // 検索ボタン
     const voiceSearchBtn = document.getElementById('voiceSearchBtn'); // 音声検索ボタン
 
     let currentCategory = null;
@@ -121,14 +122,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // 検索状態の管理
         const isSearching = !!keyword;
 
-        if (isSearching || category) {
-            // 検索・カテゴリ絞り込み時は、タブエリアを非表示
+        // 検索キーワード入力時のみタブエリアを非表示（カテゴリ選択時は表示したまま）
+        if (isSearching) {
             if (compactSections) compactSections.style.display = 'none';
         } else {
-            // 通常時（トップページ）はタブエリアを表示
             if (compactSections) compactSections.style.display = 'block';
         }
-        // トップページでも全FAQを表示する（returnしない）
+        // カテゴリ選択時もFAQリストは表示する
 
         faqList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
@@ -311,6 +311,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // 検索ボタンクリックでログ保存
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                const keyword = searchInput.value.trim();
+                if (keyword) {
+                    console.log('[searchBtn] ボタンクリックでログ保存:', keyword);
+                    loadFaqs(keyword, currentCategory, true);
+                }
+            });
+        }
 
         // カテゴリフィルター
         categoryTags.addEventListener('click', (e) => {

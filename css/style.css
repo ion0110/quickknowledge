@@ -153,6 +153,27 @@ body {
   font-size: 1.2rem;
 }
 
+/* 検索ボタン */
+.search-btn {
+  position: absolute;
+  right: 3.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.search-btn:hover {
+  background: var(--primary-dark);
+}
+
 .voice-search-btn {
   position: absolute;
   right: 1.25rem;
