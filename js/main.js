@@ -137,7 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // 検索ログ保存（Enterキーまたは音声検索による明示的な場合のみ）
-            if (keyword && isSearching && saveLog) {
+            // デバッグ: ログ保存条件の確認
+            console.log('[loadFaqs] keyword:', keyword, 'saveLog:', saveLog);
+
+            if (keyword && isSearching && saveLog === true) {
+                console.log('[loadFaqs] ログ保存を実行します:', keyword);
                 // background処理として実行（awaitしない）
                 FaqService.logSearch(keyword).catch(err => console.error(err));
             }
