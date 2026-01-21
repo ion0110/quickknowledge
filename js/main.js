@@ -253,8 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // 検索
-        let searchTimeout;
+
+        // 検索（ボタン/Enter/IME確定時のみ実行）
         let isComposing = false; // IME入力中フラグ
         let justCompositionEnded = false; // IME確定直後フラグ（Enterキー重複防止用）
 
@@ -281,22 +281,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 100);
         });
 
+        // inputイベントではリアルタイム検索しない（検索ボタン/Enter/IME確定時のみ検索）
         searchInput.addEventListener('input', (e) => {
-            // IME入力中は検索しない
+            // IME入力中は何もしない
             if (isComposing || e.isComposing) return;
 
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const keyword = e.target.value.trim();
-                // リアルタイム検索ではログを保存しない (saveLog = false)
-                loadFaqs(keyword, currentCategory, false);
+            const keyword = e.target.value.trim();
 
-                // 検索クリア時にセクション再表示
-                if (!keyword && !isSearching) {
-                    loadFavorites();
-                    loadRecentFaqs();
-                }
-            }, 500); // 誤入力対策で少し遅延を増やす
+            // 検索欄がクリアされた場合のみ、元の表示に戻す
+            if (!keyword) {
+                loadFaqs('', currentCategory, false);
+                loadFavorites();
+                loadRecentFaqs();
+            }
         });
 
         // Enterキーでログ保存（英数字入力用）
