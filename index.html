@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuickKnowledge - 社内FAQ検索</title>
   <meta name="description" content="社内のよくある質問を簡単に検索できるFAQシステム">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
   <!-- marked.js for Markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -16,11 +16,11 @@
   <header class="header">
     <div class="header-content">
       <a href="index.html" class="logo">
-        <span class="logo-icon">📚</span>
+        <span class="logo-icon">◆</span>
         <span>QuickKnowledge</span>
       </a>
       <nav>
-        <a href="admin.html" class="icon-btn" data-tooltip="管理画面">⚙️</a>
+        <a href="admin.html" class="icon-btn" data-tooltip="管理画面">⚙</a>
       </nav>
     </div>
   </header>
@@ -33,7 +33,13 @@
       <p class="search-subtitle">キーワードを入力して社内FAQを検索</p>
 
       <div class="search-box">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
         <input type="text" id="searchInput" class="search-input" placeholder="例：領収書、WiFi、休暇申請..." autocomplete="off">
         <button id="searchBtn" class="search-btn" title="検索">検索</button>
         <button id="voiceSearchBtn" class="voice-search-btn" title="音声検索" style="display:none;">🎤</button>

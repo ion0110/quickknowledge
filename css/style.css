@@ -5,12 +5,12 @@
 
 /* CSS変数 */
 :root {
-  --primary-color: #546e7a;
-  --primary-hover: #455a64;
+  --primary-color: #37474f;
+  --primary-hover: #263238;
   --primary-light: #eceff1;
-  --accent-color: #607d8b;
-  --accent-hover: #546e7a;
-  --secondary-color: #78909c;
+  --accent-color: #455a64;
+  --accent-hover: #37474f;
+  --secondary-color: #546e7a;
   --background: #ffffff;
   --surface: #fafafa;
   --surface-elevated: #ffffff;
@@ -57,7 +57,7 @@ body {
 
 /* ========== ヘッダー ========== */
 .header {
-  background: linear-gradient(135deg, #546e7a 0%, #607d8b 100%);
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
   color: white;
   padding: 1rem 2rem;
   box-shadow: var(--shadow-lg);
@@ -220,7 +220,7 @@ nav {
 .search-input:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: var(--shadow-lg), 0 0 0 4px rgba(96, 125, 139, 0.15);
+  box-shadow: var(--shadow-lg), 0 0 0 4px rgba(69, 90, 100, 0.15);
   transform: translateY(-1px);
 }
 
@@ -252,13 +252,13 @@ nav {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 2px 8px rgba(96, 125, 139, 0.3);
+  box-shadow: 0 2px 8px rgba(69, 90, 100, 0.35);
   letter-spacing: 0.3px;
 }
 
 .search-btn:hover {
   background: var(--accent-hover);
-  box-shadow: 0 4px 12px rgba(96, 125, 139, 0.4);
+  box-shadow: 0 4px 12px rgba(69, 90, 100, 0.45);
   transform: translateY(-51%);
 }
 
@@ -354,7 +354,7 @@ nav {
   background: var(--accent-color);
   color: white;
   border-color: var(--accent-color);
-  box-shadow: 0 4px 12px rgba(96, 125, 139, 0.35);
+  box-shadow: 0 4px 12px rgba(69, 90, 100, 0.4);
 }
 
 /* ========== FAQ リスト ========== */
