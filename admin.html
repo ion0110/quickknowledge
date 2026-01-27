@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理画面 - QuickKnowledge</title>
   <meta name="description" content="QuickKnowledge FAQ管理画面">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=6">
   <style>
     /* 認証用追加スタイル */
     .auth-section {
@@ -68,7 +68,7 @@
         <span>QuickKnowledge</span>
       </a>
       <div class="auth-section">
-        <a href="index.html" class="nav-link">検索画面へ</a>
+        <a href="index.html" class="icon-btn" data-tooltip="検索画面へ">🔍</a>
         <!-- ログイン前 -->
         <button id="loginBtn" class="btn btn-secondary" style="background: rgba(255,255,255,0.15); border: none;">
           🔐 Googleでログイン
@@ -77,10 +77,7 @@
         <div id="userSection" class="user-info" style="display: none;">
           <img id="userAvatar" class="user-avatar" src="" alt="アバター">
           <span id="userName" class="user-name"></span>
-          <button id="logoutBtn" class="btn btn-secondary"
-            style="background: rgba(255,255,255,0.15); border: none; padding: 0.5rem 1rem;">
-            ログアウト
-          </button>
+          <button id="logoutBtn" class="icon-btn" data-tooltip="ログアウト">🚪</button>
         </div>
       </div>
     </div>
